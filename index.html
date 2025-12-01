@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Cell Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 320px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .control-section {
+            margin-bottom: 30px;
+        }
+
+        .control-section h3 {
+            color: #555;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+        }
+
+        .input-wrapper label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.15s;
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .color-option {
+            width: 100%;
+            height: 50px;
+            border: 3px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.05);
+        }
+
+        .color-option.active {
+            border-color: #333;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #333;
+        }
+
+        .color-option::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 5px;
+            background: inherit;
+        }
+
+        .btn-x-mode {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-x-mode:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-x-mode:active {
+            transform: translateY(0);
+        }
+
+        .btn-x-mode.active {
+            background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.4);
+            border: 2px solid #27ae60;
+        }
+
+        .line-mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-line-mode {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-line-mode:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-line-mode:active {
+            transform: translateY(0);
+        }
+
+        .btn-line-mode.active {
+            background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.4);
+            border: 2px solid #2980b9;
+        }
+
+        .btn-clear {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #ff3838;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        .btn-clear:active {
+            transform: translateY(0);
+        }
+
+        .grid-container {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .grid-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+
+        .grid {
+            display: grid;
+            gap: 0;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .cell {
+            background: white;
+            border: 1px solid #000;
+            aspect-ratio: 1 / 1;
+            padding: 4px;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.1s;
+            outline: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .cell.color-mode {
+            cursor: pointer;
+        }
+
+        .cell.x-mode {
+            cursor: pointer;
+        }
+
+        .cell.line-mode {
+            cursor: crosshair;
+        }
+
+        .cell:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+            z-index: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            font-size: 18px;
+            padding: 60px 20px;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>⚙️ Controls</h2>
+        
+        <div class="control-section">
+            <h3>Grid Setup</h3>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label for="rows">Rows</label>
+                    <input type="number" id="rows" min="1" max="50" value="5">
+                </div>
+                <div class="input-wrapper">
+                    <label for="cols">Columns</label>
+                    <input type="number" id="cols" min="1" max="50" value="5">
+                </div>
+            </div>
+            <button class="btn btn-generate" onclick="generateGrid()">Generate Grid</button>
+        </div>
+
+        <div class="control-section">
+            <h3>Color Palette</h3>
+            <div class="color-palette">
+                <div class="color-option" style="background: #ff6b6b;" onclick="selectColor('#ff6b6b', this)"></div>
+                <div class="color-option" style="background: #4ecdc4;" onclick="selectColor('#4ecdc4', this)"></div>
+                <div class="color-option" style="background: #ffe66d;" onclick="selectColor('#ffe66d', this)"></div>
+                <div class="color-option" style="background: #a8e6cf;" onclick="selectColor('#a8e6cf', this)"></div>
+            </div>
+            <button class="btn btn-x-mode" id="xModeBtn" onclick="toggleXMode()">
+                <span id="xModeIcon">✖️</span> Insert X Mode
+            </button>
+        </div>
+
+        <div class="control-section">
+            <h3>Line Drawing</h3>
+            <div class="line-mode-buttons">
+                <button class="btn btn-line-mode" id="rowLineBtn" onclick="toggleRowLineMode()">
+                    ➖ Draw Row Lines
+                </button>
+                <button class="btn btn-line-mode" id="colLineBtn" onclick="toggleColLineMode()">
+                    | Draw Column Lines
+                </button>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Actions</h3>
+            <button class="btn btn-clear" onclick="clearAll()">Clear All Inputs</button>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div id="gridWrapper">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <div>Set rows and columns, then click Generate Grid to start</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedColor = null;
+        let xMode = false;
+        let rowLineMode = false;
+        let colLineMode = false;
+        let gridColumns = 0;
+
+        function selectColor(color, element) {
+            // If clicking the same color, deselect it
+            if (element.classList.contains('active')) {
+                element.classList.remove('active');
+                selectedColor = null;
+                xMode = false;
+                rowLineMode = false;
+                colLineMode = false;
+                document.getElementById('xModeBtn').classList.remove('active');
+                document.getElementById('rowLineBtn').classList.remove('active');
+                document.getElementById('colLineBtn').classList.remove('active');
+                updateCellCursors();
+                return;
+            }
+
+            // Remove active class from all color options
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            
+            // Deactivate all modes
+            xMode = false;
+            rowLineMode = false;
+            colLineMode = false;
+            document.getElementById('xModeBtn').classList.remove('active');
+            document.getElementById('rowLineBtn').classList.remove('active');
+            document.getElementById('colLineBtn').classList.remove('active');
+            
+            // Add active class to selected color
+            element.classList.add('active');
+            selectedColor = color;
+            
+            updateCellCursors();
+        }
+
+        function toggleXMode() {
+            const btn = document.getElementById('xModeBtn');
+            
+            // Toggle X mode
+            xMode = !xMode;
+            
+            if (xMode) {
+                // Activate X mode
+                btn.classList.add('active');
+                selectedColor = null;
+                rowLineMode = false;
+                colLineMode = false;
+                
+                // Deselect all colors and line modes
+                document.querySelectorAll('.color-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                document.getElementById('rowLineBtn').classList.remove('active');
+                document.getElementById('colLineBtn').classList.remove('active');
+            } else {
+                // Deactivate X mode
+                btn.classList.remove('active');
+            }
+            
+            updateCellCursors();
+        }
+
+        function toggleRowLineMode() {
+            const btn = document.getElementById('rowLineBtn');
+            
+            // Toggle row line mode
+            rowLineMode = !rowLineMode;
+            
+            if (rowLineMode) {
+                // Activate row line mode
+                btn.classList.add('active');
+                colLineMode = false;
+                xMode = false;
+                
+                // Deselect column line mode and X mode
+                document.getElementById('colLineBtn').classList.remove('active');
+                document.getElementById('xModeBtn').classList.remove('active');
+                
+                // Color must be selected for line mode
+                if (!selectedColor) {
+                    alert('Please select a color first!');
+                    rowLineMode = false;
+                    btn.classList.remove('active');
+                    return;
+                }
+            } else {
+                // Deactivate row line mode
+                btn.classList.remove('active');
+            }
+            
+            updateCellCursors();
+        }
+
+        function toggleColLineMode() {
+            const btn = document.getElementById('colLineBtn');
+            
+            // Toggle column line mode
+            colLineMode = !colLineMode;
+            
+            if (colLineMode) {
+                // Activate column line mode
+                btn.classList.add('active');
+                rowLineMode = false;
+                xMode = false;
+                
+                // Deselect row line mode and X mode
+                document.getElementById('rowLineBtn').classList.remove('active');
+                document.getElementById('xModeBtn').classList.remove('active');
+                
+                // Color must be selected for line mode
+                if (!selectedColor) {
+                    alert('Please select a color first!');
+                    colLineMode = false;
+                    btn.classList.remove('active');
+                    return;
+                }
+            } else {
+                // Deactivate column line mode
+                btn.classList.remove('active');
+            }
+            
+            updateCellCursors();
+        }
+
+        function updateCellCursors() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.classList.remove('color-mode', 'x-mode', 'line-mode');
+                if (selectedColor && !rowLineMode && !colLineMode) {
+                    cell.classList.add('color-mode');
+                } else if (xMode) {
+                    cell.classList.add('x-mode');
+                } else if (rowLineMode || colLineMode) {
+                    cell.classList.add('line-mode');
+                }
+            });
+        }
+
+        function drawRowLine(cellIndex) {
+            if (!selectedColor) return;
+            
+            const cells = document.querySelectorAll('.cell');
+            const rowStart = Math.floor(cellIndex / gridColumns) * gridColumns;
+            
+            // Check if the row line already has this color
+            const firstCell = cells[rowStart];
+            const currentBorderColor = firstCell.style.borderBottomColor;
+            const currentBorderWidth = firstCell.style.borderBottomWidth;
+            
+            // Convert selected color to RGB format for comparison
+            const tempDiv = document.createElement('div');
+            tempDiv.style.color = selectedColor;
+            document.body.appendChild(tempDiv);
+            const rgbColor = window.getComputedStyle(tempDiv).color;
+            document.body.removeChild(tempDiv);
+            
+            // If line already exists with this color, remove it
+            if (currentBorderColor === rgbColor && currentBorderWidth === '3px') {
+                for (let i = rowStart; i < rowStart + gridColumns; i++) {
+                    cells[i].style.borderBottomColor = '#000';
+                    cells[i].style.borderBottomWidth = '1px';
+                }
+            } else {
+                // Otherwise, draw the line
+                for (let i = rowStart; i < rowStart + gridColumns; i++) {
+                    cells[i].style.borderBottomColor = selectedColor;
+                    cells[i].style.borderBottomWidth = '3px';
+                }
+            }
+        }
+
+        function drawColLine(cellIndex) {
+            if (!selectedColor) return;
+            
+            const cells = document.querySelectorAll('.cell');
+            const col = cellIndex % gridColumns;
+            const totalRows = Math.ceil(cells.length / gridColumns);
+            
+            // Check if the column line already has this color
+            const firstCell = cells[col];
+            const currentBorderColor = firstCell.style.borderRightColor;
+            const currentBorderWidth = firstCell.style.borderRightWidth;
+            
+            // Convert selected color to RGB format for comparison
+            const tempDiv = document.createElement('div');
+            tempDiv.style.color = selectedColor;
+            document.body.appendChild(tempDiv);
+            const rgbColor = window.getComputedStyle(tempDiv).color;
+            document.body.removeChild(tempDiv);
+            
+            // If line already exists with this color, remove it
+            if (currentBorderColor === rgbColor && currentBorderWidth === '3px') {
+                for (let row = 0; row < totalRows; row++) {
+                    const index = row * gridColumns + col;
+                    if (index < cells.length) {
+                        cells[index].style.borderRightColor = '#000';
+                        cells[index].style.borderRightWidth = '1px';
+                    }
+                }
+            } else {
+                // Otherwise, draw the line
+                for (let row = 0; row < totalRows; row++) {
+                    const index = row * gridColumns + col;
+                    if (index < cells.length) {
+                        cells[index].style.borderRightColor = selectedColor;
+                        cells[index].style.borderRightWidth = '3px';
+                    }
+                }
+            }
+        }
+
+        function generateGrid() {
+            const rows = parseInt(document.getElementById('rows').value);
+            const cols = parseInt(document.getElementById('cols').value);
+
+            if (rows < 1 || cols < 1 || rows > 50 || cols > 50) {
+                alert('Please enter valid numbers between 1 and 50');
+                return;
+            }
+
+            gridColumns = cols;
+
+            const gridWrapper = document.getElementById('gridWrapper');
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            
+            // Calculate cell size based on available space
+            const container = gridWrapper.parentElement;
+            const containerWidth = container.clientWidth - 60; // Account for padding
+            const containerHeight = container.clientHeight - 60;
+            
+            const cellWidth = Math.floor(containerWidth / cols);
+            const cellHeight = Math.floor(containerHeight / rows);
+            const cellSize = Math.min(cellWidth, cellHeight);
+            
+            grid.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, ${cellSize}px)`;
+
+            for (let i = 0; i < rows * cols; i++) {
+                const cell = document.createElement('input');
+                cell.className = 'cell';
+                cell.type = 'text';
+                cell.dataset.defaultColor = 'white';
+                cell.dataset.index = i;
+                
+                cell.addEventListener('click', function() {
+                    const cellIndex = parseInt(this.dataset.index);
+                    
+                    if (rowLineMode && selectedColor) {
+                        // Draw row line
+                        drawRowLine(cellIndex);
+                    } else if (colLineMode && selectedColor) {
+                        // Draw column line
+                        drawColLine(cellIndex);
+                    } else if (xMode) {
+                        // In X mode, insert X
+                        this.value = 'X';
+                    } else if (selectedColor) {
+                        // In color mode, apply color to cell background
+                        const currentBg = this.style.backgroundColor;
+                        
+                        if (currentBg && currentBg !== 'white' && currentBg !== '') {
+                            this.style.backgroundColor = 'white';
+                        } else {
+                            this.style.backgroundColor = selectedColor;
+                        }
+                    }
+                });
+
+                grid.appendChild(cell);
+            }
+
+            gridWrapper.innerHTML = '';
+            gridWrapper.appendChild(grid);
+            
+            updateCellCursors();
+        }
+
+        function clearAll() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.value = '';
+                cell.style.backgroundColor = 'white';
+                cell.style.borderBottomColor = '#000';
+                cell.style.borderBottomWidth = '1px';
+                cell.style.borderRightColor = '#000';
+                cell.style.borderRightWidth = '1px';
+            });
+        }
+
+        // Generate default grid on load
+        window.addEventListener('load', generateGrid);
+    </script>
+</body>
+</html>
